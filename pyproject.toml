@@ -1,0 +1,8 @@
+[project]
+name = "pytorch-sparse-solve"
+dependencies = [
+    "torch",
+    "numpy",
+    "scipy",
+    "cholespy",
+]
