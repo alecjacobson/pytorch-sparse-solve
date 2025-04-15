@@ -15,5 +15,6 @@ Run example
  - [ ] Add mini example to README
  - [ ] Add fuller example (e.g., "Fast Quasi-Harmonic Weights for Geometric Data Interpolation")
 
+You might also be interested in https://github.com/alecjacobson/indexed_sum
 
 _Original code from Aravind Ramakrishnan._
