@@ -11,7 +11,7 @@ and $A: \mathbb{R}^n \rightarrow \mathbb{R}^{n \times n}$ is some *sparse*-matri
 $$
 A_{ij}(\theta) = \begin{cases} 
 1 + \cos(\theta_i) & \text{if } i = j \\
-\sin(\sum_{k=1}^n \theta_k) & \text{if } i-1 = n-j \\
+\sin\right(\sum_{k=1}^n \theta_k\right) & \text{if } i-1 = n-j \\
 0 & \text{otherwise}.
 \end{cases}
 $$
