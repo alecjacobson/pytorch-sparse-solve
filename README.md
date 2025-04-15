@@ -1,10 +1,13 @@
 # PyTorch Sparse Solve
 
 This small library provides a python class `LinearDirectSolve` to use pytorch to back-propogate through function's which involve solving against a sparse matrix whose entries are differentiation variables. For example, consider that we have a function $f : \mathbb{R}^n \rightarrow \mathbb{R}$ where $f$ is defined as:
+
 $$
 f(\theta) = \frac{1}{2} \left\| A(\theta)^{-1} b \right\|^2
 $$
+
 and $A: \mathbb{R}^n \rightarrow \mathbb{R}^{n \times n}$ is some *sparse*-matrix function of $\theta$, e.g.,:
+
 $$
 A_{ij}(\theta) = \begin{cases} 
 1 + \cos(\theta_i) & \text{if } i = j \\
