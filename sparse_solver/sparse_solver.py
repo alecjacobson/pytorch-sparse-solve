@@ -1,7 +1,7 @@
 import torch
 from cholespy import CholeskySolverD, MatrixType
 
-class LinearDirectSolve(torch.autograd.Function):
+class SparseSolver(torch.autograd.Function):
     CHOL = None # cholesky decomposition
     A0 = torch.sparse_coo_tensor((1,1)).coalesce() # current matrix corresponding to CHOL
 
@@ -10,20 +10,20 @@ class LinearDirectSolve(torch.autograd.Function):
         if A.layout != torch.sparse_coo:
             A = A.to_sparse_coo()
 
-        if not (torch.equal(LinearDirectSolve.A0.indices(), A.indices()) and torch.equal(LinearDirectSolve.A0.values(), A.values())):
+        if not (torch.equal(SparseSolver.A0.indices(), A.indices()) and torch.equal(SparseSolver.A0.values(), A.values())):
         # don't factor matrix unless necessary
-            LinearDirectSolve.A0 = A
+            SparseSolver.A0 = A
 
-            ind = LinearDirectSolve.A0.indices()
+            ind = SparseSolver.A0.indices()
             rows = ind[0,:]
             cols = ind[1,:]
-            vals = LinearDirectSolve.A0.values()
+            vals = SparseSolver.A0.values()
 
-            LinearDirectSolve.CHOL = CholeskySolverD(LinearDirectSolve.A0.size(0), rows, cols, vals, MatrixType.COO)
+            SparseSolver.CHOL = CholeskySolverD(SparseSolver.A0.size(0), rows, cols, vals, MatrixType.COO)
 
         x = torch.zeros_like(b, dtype=torch.double)
-        LinearDirectSolve.CHOL.solve(b, x)
-        ctx.save_for_backward(b, LinearDirectSolve.A0.indices(), x)
+        SparseSolver.CHOL.solve(b, x)
+        ctx.save_for_backward(b, SparseSolver.A0.indices(), x)
         return x
 
     @staticmethod
@@ -38,7 +38,7 @@ class LinearDirectSolve(torch.autograd.Function):
             S = torch.sparse_coo_tensor(ind, torch.ones(ind.size(1)), (n,n), dtype=torch.double)
 
             p1left = torch.zeros_like(b, dtype=torch.double)
-            LinearDirectSolve.CHOL.solve(grad_output.clone().detach().double(), p1left)
+            SparseSolver.CHOL.solve(grad_output.clone().detach().double(), p1left)
             p1left = torch.sparse_coo_tensor(torch.stack([torch.arange(n), torch.arange(n)], 0), p1left)
 
             p1right = torch.sparse_coo_tensor(torch.stack([torch.arange(n), torch.arange(n)], 0), res, dtype=torch.double)
@@ -48,6 +48,6 @@ class LinearDirectSolve(torch.autograd.Function):
         if ctx.needs_input_grad[1]:
         # partial2 = inv(A⊙S)^⊤⋅g # drop transpose bc symmetric
             grad_b = torch.zeros_like(b, dtype=torch.double)
-            LinearDirectSolve.CHOL.solve(grad_output.clone().detach().double(), grad_b)
+            SparseSolver.CHOL.solve(grad_output.clone().detach().double(), grad_b)
 
         return grad_A, grad_b

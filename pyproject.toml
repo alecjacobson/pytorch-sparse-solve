@@ -1,8 +1,31 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
 [project]
-name = "pytorch-sparse-solve"
+name = "sparse_solver"
+version = "0.1.0"
+description = "A module for computing sparse Hessians using indexed sums in PyTorch."
+readme = "README.md"
+authors = [
+    {name = "Alec Jacobson", email = "alecjacobson@gmail.com"},
+    {name = "Aravind Ramakrishnan", email = "aravind947@gmail.com"},
+]
+license = {text = "MIT"}
 dependencies = [
     "torch",
-    "numpy",
-    "scipy",
     "cholespy",
 ]
+requires-python = ">=3.7"
+
+[tool.setuptools]
+packages = ["sparse_solver"]
+
+[tool.setuptools.package-data]
+sparse_solver = ["*.py"]
+
+[tool.setuptools.dynamic]
+version = {attr = "sparse_solver.__version__"}
+
+[project.urls]
+"Homepage" = "https://github.com/alecjacobson/sparse_solver"
