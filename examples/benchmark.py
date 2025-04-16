@@ -107,7 +107,7 @@ plt.rcParams.update({
     'legend.fontsize': 14,
     'xtick.labelsize': 14,
     'ytick.labelsize': 14,
-    'figure.facecolor': '0.95',
+    'figure.facecolor': '1.0',
     'axes.facecolor': '0.95',
     'grid.color': 'white',
     'grid.linestyle': '-',
