@@ -99,6 +99,7 @@ for n in (2 ** i for i in range(8, 14)):
     sparse_times.append(t_sparse)
 
 
+# The rest is all plotting
 
 plt.rcParams.update({
     'font.size': 16,
