@@ -45,4 +45,6 @@ Run benchmark
 
 You might also be interested in https://github.com/alecjacobson/indexed_sum
 
+https://github.com/flaport/torch_sparse_solve appears to be similar, but supports batching and uses LU instead of Cholesky.
+
 _Original code from Aravind Ramakrishnan._
