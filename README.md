@@ -32,6 +32,8 @@ A_{ij} = \begin{cases}
 \end{cases}.
 $$
 
+### 😭 Dense baseline
+
 Unfortunately, pytorch doesn't support sparse matrices well by default. So if we
 were to build a $A$ matrix, we would have to build a dense matrix. For example,
 assuming a sparse set of random edges, we might write something like:
@@ -65,6 +67,8 @@ dLdw = w.grad.clone().detach()
 ```
 
 This default dense pytorch code will choke as $n$ increases. 
+
+### 🚀 Sparse 
 
 Fortunately instead, we can use `torch.sparse_coo_tensor` and `SparseSolve` to
 construct and solve against $A$ in a sparse way while maintaining
