@@ -6,6 +6,15 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
+# is torch_sparse_solve available?
+try:
+    import torch_sparse_solve
+    torch_sparse_solve_available = True
+except ImportError:
+    torch_sparse_solve_available = False
+
+print(f"torch_sparse_solve available: {torch_sparse_solve_available}")
+
 def x_dense(theta,b):
     n = b.shape[0]
     # A is defined so that:
@@ -35,8 +44,7 @@ def x_dense(theta,b):
     x = torch.linalg.solve(A,b)
     return x
 
-def x_sparse(theta,b):
-    n = b.shape[0]
+def A_sparse(theta,n):
     # Identity part: (i, i) → 1
     diag_i = torch.arange(n)
     diag_j = torch.arange(n)
@@ -56,10 +64,21 @@ def x_sparse(theta,b):
                            torch.cat([diag_j, off_j])])
     values = torch.cat([diag_val, off_val])
 
-    A_sparse = torch.sparse_coo_tensor(indices, values, size=(n, n), dtype=torch.double).coalesce()
-    x = sparse_solver.SparseSolver.apply(A_sparse, b)
+    A = torch.sparse_coo_tensor(indices, values, size=(n, n), dtype=torch.double).coalesce()
+    return A
+
+def x_sparse(theta,b):
+    n = b.shape[0]
+    A = A_sparse(theta, n)
+    x = sparse_solver.SparseSolver.apply(A, b)
     return x
 
+def x_lu(theta,b):
+    n = b.shape[0]
+    A = A_sparse(theta, n)
+    x = torch_sparse_solve.solve(A.unsqueeze(0), b.unsqueeze(1).unsqueeze(0) )
+    x = x.squeeze(0).squeeze(-1)
+    return x
 
 def loss(x):
     # loss function
@@ -70,6 +89,7 @@ def loss(x):
 ns = []
 dense_times = []
 sparse_times = []
+lu_times = []
 
 for n in (2 ** i for i in range(8, 14)):
     torch.manual_seed(0)
@@ -94,9 +114,22 @@ for n in (2 ** i for i in range(8, 14)):
 
     assert torch.allclose(dfdtheta_dense, dfdtheta_sparse, atol=1e-6), f"Gradient mismatch for n={n}"
 
+    if torch_sparse_solve_available:
+        for _ in range(2):
+            theta.grad = None
+            start = time.time()
+            f = loss(x_lu(theta, b))
+            f.backward()
+            dfdtheta_lu = theta.grad.clone().detach()
+            t_lu = time.time() - start
+
+        assert torch.allclose(dfdtheta_dense, dfdtheta_lu, atol=1e-6), f"Gradient mismatch for n={n}"
+
     ns.append(n)
     dense_times.append(t_dense)
     sparse_times.append(t_sparse)
+    if torch_sparse_solve_available:
+        lu_times.append(t_lu)
 
 
 # The rest is all plotting
@@ -125,6 +158,8 @@ fig, ax = plt.subplots(figsize=(8, 6))
 
 ax.loglog(ns, dense_times, 'o-', label='torch', linewidth=3)
 ax.loglog(ns, sparse_times, 's-', label='SparseSolve', linewidth=3)
+if torch_sparse_solve_available:
+    ax.loglog(ns, lu_times, '^-', label='torch_sparse_solve', linewidth=3)
 
 # Guide lines and text annotations
 x0 = ns[0]
